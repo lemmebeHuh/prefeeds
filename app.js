@@ -18,11 +18,48 @@
     slicerSrc: null,       // data URL
     slicerSlideCount: 2,
 
-    // Scrapbook Builder
-    sbItems: [],           // Array of { id, img, x, y, width, height, aspect }
-    sbSelectedId: null,
+    // Scrapbook Builder (Templates)
+    sbFrames: [],          // [{ id, x, y, width, height, image: { src, img, scale, panX, panY } }]
+    sbSelectedTemplate: null,
     sbBaseHeight: 1080,    // Standard IG height
   };
+
+  const SB_TEMPLATES = [
+    {
+      id: 'filmstrip',
+      name: 'Filmstrip (3 Slides)',
+      slides: 3,
+      ratio: '4:5',
+      frames: [
+        { id: 'f1', x: 50, y: 100, width: 764, height: 880 }, // slide 1: 864x1080
+        { id: 'f2', x: 914, y: 100, width: 764, height: 880 },
+        { id: 'f3', x: 1778, y: 100, width: 764, height: 880 }
+      ]
+    },
+    {
+      id: 'overlap',
+      name: 'Overlapping Scrapbook (3 Slides)',
+      slides: 3,
+      ratio: '4:5',
+      frames: [
+        { id: 'f1', x: 100, y: 100, width: 1000, height: 800 }, 
+        { id: 'f2', x: 1200, y: 150, width: 600, height: 800 },
+        { id: 'f3', x: 1900, y: 50, width: 600, height: 980 }
+      ]
+    },
+    {
+      id: 'polaroid',
+      name: 'Polaroid Scatter (4 Slides)',
+      slides: 4,
+      ratio: '1:1', // Square slides
+      frames: [
+        { id: 'f1', x: 80, y: 120, width: 700, height: 840 },
+        { id: 'f2', x: 950, y: 200, width: 700, height: 700 },
+        { id: 'f3', x: 1800, y: 100, width: 700, height: 840 },
+        { id: 'f4', x: 2650, y: 150, width: 700, height: 700 }
+      ]
+    }
+  ];
 
   /* ─── DOM References ─── */
   const $ = (s) => document.querySelector(s);
@@ -118,8 +155,7 @@
     sbAddImgBtn: $('#btn-sb-add-img'),
     sbAddImgInput: $('#scrapbook-add-img'),
     sbClear: $('#btn-sb-clear'),
-    sbSlideCount: $('#sb-slide-count'),
-    sbRatio: $('#sb-ratio'),
+    sbTemplateSelect: $('#sb-template-select'),
     sbContainer: $('#scrapbook-container'),
     sbWorkspace: $('#scrapbook-workspace'),
     sbGrid: $('#scrapbook-grid'),
@@ -685,10 +721,37 @@
   }
 
   /* ═══════════════════════════════════════════════════
-   * ─── Scrapbook Builder ───
+   * ─── Scrapbook Builder (Templates) ───
    * ═══════════════════════════════════════════════════ */
 
+  function initScrapbookTemplates() {
+    els.sbTemplateSelect.innerHTML = '';
+    SB_TEMPLATES.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.name;
+      els.sbTemplateSelect.appendChild(opt);
+    });
+    // Set initial template
+    state.sbSelectedTemplate = SB_TEMPLATES[0];
+    loadTemplate(state.sbSelectedTemplate);
+  }
+
+  function loadTemplate(template) {
+    state.sbSelectedTemplate = template;
+    // Map template frames into state frames with empty images
+    state.sbFrames = template.frames.map(f => ({
+      ...f,
+      image: null
+    }));
+    updateScrapbookWorkspace();
+    renderScrapbookItems();
+  }
+
   function openScrapbook() {
+    if (!els.sbTemplateSelect.options.length) {
+      initScrapbookTemplates();
+    }
     els.sbOverlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     updateScrapbookWorkspace();
@@ -700,23 +763,21 @@
   }
 
   function getScrapbookConfig() {
-    const slides = parseInt(els.sbSlideCount.value);
-    const ratioStr = els.sbRatio.value;
-    // Base height is fixed to 1080 for rendering. Width depends on ratio.
+    const t = state.sbSelectedTemplate;
+    if (!t) return { slides: 3, wPerSlide: 864, totalW: 2592, h: 1080 };
     const h = state.sbBaseHeight;
-    const wPerSlide = ratioStr === '1:1' ? h : Math.round(h * (4/5));
-    const totalW = wPerSlide * slides;
-    return { slides, wPerSlide, totalW, h };
+    const wPerSlide = t.ratio === '1:1' ? h : Math.round(h * (4/5));
+    const totalW = wPerSlide * t.slides;
+    return { slides: t.slides, wPerSlide, totalW, h };
   }
 
   function updateScrapbookWorkspace() {
     const conf = getScrapbookConfig();
-    // Set actual width and height style on workspace for JS dragging
     els.sbWorkspace.style.width = `${conf.totalW}px`;
     els.sbWorkspace.style.height = `${conf.h}px`;
     
     // Scale workspace to fit container visually
-    const containerW = els.sbContainer.clientWidth - 64; // padding
+    const containerW = els.sbContainer.clientWidth - 64; 
     const containerH = els.sbContainer.clientHeight - 64;
     const scale = Math.min(containerW / conf.totalW, containerH / conf.h, 1);
     els.sbWorkspace.style.transform = `scale(${scale})`;
@@ -735,21 +796,23 @@
       img.src = src;
     });
 
-    const conf = getScrapbookConfig();
-    // Default size is 50% of the height
-    const displayH = conf.h * 0.5;
-    const displayW = displayH * (img.naturalWidth / img.naturalHeight);
+    // Find first empty frame
+    const emptyFrame = state.sbFrames.find(f => !f.image);
+    if (!emptyFrame) {
+      showToast('All frames are full! Drag an image to swap, or clear.');
+      return;
+    }
 
-    const id = 'sb-item-' + Date.now();
-    state.sbItems.push({
-      id,
+    // Default pan and scale to cover frame
+    const scale = Math.max(emptyFrame.width / img.naturalWidth, emptyFrame.height / img.naturalHeight);
+    
+    emptyFrame.image = {
+      src,
       img,
-      x: (conf.totalW / 2) - (displayW / 2),
-      y: (conf.h / 2) - (displayH / 2),
-      width: displayW,
-      height: displayH,
-      aspect: img.naturalWidth / img.naturalHeight
-    });
+      scale: scale,
+      panX: 0,
+      panY: 0
+    };
     
     renderScrapbookItems();
   }
@@ -761,45 +824,79 @@
       if (c.id !== 'scrapbook-grid') els.sbWorkspace.removeChild(c);
     });
 
-    state.sbItems.forEach(item => {
+    state.sbFrames.forEach(frame => {
       const div = document.createElement('div');
-      div.className = 'sb-item' + (state.sbSelectedId === item.id ? ' selected' : '');
-      div.id = item.id;
-      div.style.left = `${item.x}px`;
-      div.style.top = `${item.y}px`;
-      div.style.width = `${item.width}px`;
-      div.style.height = `${item.height}px`;
+      div.className = 'sb-frame' + (frame.image ? ' has-image' : '');
+      div.id = `sb-frame-${frame.id}`;
+      div.dataset.frameId = frame.id;
+      div.style.left = `${frame.x}px`;
+      div.style.top = `${frame.y}px`;
+      div.style.width = `${frame.width}px`;
+      div.style.height = `${frame.height}px`;
 
-      const imgEl = document.createElement('img');
-      imgEl.src = item.img.src;
-      div.appendChild(imgEl);
-
-      // Handles
-      ['nw', 'ne', 'sw', 'se'].forEach(dir => {
-        const handle = document.createElement('div');
-        handle.className = `sb-resize-handle ${dir}`;
-        handle.dataset.dir = dir;
-        div.appendChild(handle);
-      });
-
-      // Selection & Drag
-      div.addEventListener('mousedown', (e) => {
-        if (e.target.classList.contains('sb-resize-handle')) return; // handled separately
-        state.sbSelectedId = item.id;
-        renderScrapbookItems(); // update selection outline
-        startScrapbookDrag(e, item, div);
-      });
-
-      // Resize
-      div.querySelectorAll('.sb-resize-handle').forEach(handle => {
-        handle.addEventListener('mousedown', (e) => {
-          e.stopPropagation();
-          startScrapbookResize(e, item, div, handle.dataset.dir);
+      if (frame.image) {
+        const imgEl = document.createElement('img');
+        imgEl.className = 'sb-frame-img';
+        imgEl.src = frame.image.src;
+        // Transform pan and scale
+        imgEl.style.transform = `translate(calc(-50% + ${frame.image.panX}px), calc(-50% + ${frame.image.panY}px)) scale(${frame.image.scale})`;
+        
+        // Pan/Zoom Events
+        attachPanZoomEvents(imgEl, frame);
+        // Drag to swap
+        imgEl.draggable = true;
+        imgEl.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', frame.id);
         });
+        
+        div.appendChild(imgEl);
+      } else {
+        const emptyText = document.createElement('div');
+        emptyText.className = 'sb-frame-empty-text';
+        emptyText.textContent = 'Empty Frame';
+        div.appendChild(emptyText);
+      }
+
+      // Drop events for swapping
+      div.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        div.classList.add('drag-over');
+      });
+      div.addEventListener('dragleave', (e) => {
+        div.classList.remove('drag-over');
+      });
+      div.addEventListener('drop', (e) => {
+        e.preventDefault();
+        div.classList.remove('drag-over');
+        const sourceFrameId = e.dataTransfer.getData('text/plain');
+        if (sourceFrameId && sourceFrameId !== frame.id) {
+          swapFrames(sourceFrameId, frame.id);
+        }
       });
 
       els.sbWorkspace.appendChild(div);
     });
+  }
+
+  function swapFrames(id1, id2) {
+    const f1 = state.sbFrames.find(f => f.id === id1);
+    const f2 = state.sbFrames.find(f => f.id === id2);
+    if (f1 && f2) {
+      const temp = f1.image;
+      f1.image = f2.image;
+      f2.image = temp;
+      
+      // Recalculate default scale if swapped to an empty frame or different sized frame
+      if (f1.image) {
+        f1.image.scale = Math.max(f1.width / f1.image.img.naturalWidth, f1.height / f1.image.img.naturalHeight);
+        f1.image.panX = 0; f1.image.panY = 0;
+      }
+      if (f2.image) {
+        f2.image.scale = Math.max(f2.width / f2.image.img.naturalWidth, f2.height / f2.image.img.naturalHeight);
+        f2.image.panX = 0; f2.image.panY = 0;
+      }
+      renderScrapbookItems();
+    }
   }
 
   function getWorkspaceScale() {
@@ -808,80 +905,59 @@
     return match ? parseFloat(match[1]) : 1;
   }
 
-  function startScrapbookDrag(e, item, div) {
-    e.preventDefault();
-    const scale = getWorkspaceScale();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const initialX = item.x;
-    const initialY = item.y;
+  function attachPanZoomEvents(imgEl, frame) {
+    let isPanning = false;
+    let startX, startY;
+    let initialPanX, initialPanY;
 
-    function onMove(ev) {
-      item.x = initialX + (ev.clientX - startX) / scale;
-      item.y = initialY + (ev.clientY - startY) / scale;
-      div.style.left = `${item.x}px`;
-      div.style.top = `${item.y}px`;
-    }
-    function onUp() {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    }
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  }
+    imgEl.addEventListener('mousedown', (e) => {
+      // Don't pan if they are initiating a drag-drop swap (which relies on native drag)
+      // Native drag takes over on fast drags, so we only pan if it's a careful drag? 
+      // Actually, to mix HTML5 drag-drop and custom panning on the same element:
+      // Let's use alt-key + click for pan, or let's just use mouse for pan, and a specific handle for swap?
+      // Better: we can differentiate pan vs swap. Let's just use native drag for swap, and shift+drag for pan.
+      // For a seamless experience, we can disable native drag when panning.
+      if (e.shiftKey) {
+        e.preventDefault(); // disable native drag
+        isPanning = true;
+        const scale = getWorkspaceScale();
+        startX = e.clientX;
+        startY = e.clientY;
+        initialPanX = frame.image.panX;
+        initialPanY = frame.image.panY;
+        
+        function onMove(ev) {
+          if (!isPanning) return;
+          frame.image.panX = initialPanX + (ev.clientX - startX) / scale;
+          frame.image.panY = initialPanY + (ev.clientY - startY) / scale;
+          imgEl.style.transform = `translate(calc(-50% + ${frame.image.panX}px), calc(-50% + ${frame.image.panY}px)) scale(${frame.image.scale})`;
+        }
+        function onUp() {
+          isPanning = false;
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      }
+    });
 
-  function startScrapbookResize(e, item, div, dir) {
-    e.preventDefault();
-    const scale = getWorkspaceScale();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const initialX = item.x;
-    const initialY = item.y;
-    const initialW = item.width;
-    const initialH = item.height;
-    const aspect = item.aspect;
-
-    function onMove(ev) {
-      const dx = (ev.clientX - startX) / scale;
-      const dy = (ev.clientY - startY) / scale;
-      
-      let newW = initialW;
-      
-      if (dir.includes('e')) newW = initialW + dx;
-      if (dir.includes('w')) newW = initialW - dx;
-      
-      // Enforce min width
-      newW = Math.max(50, newW);
-      const newH = newW / aspect; // lock aspect ratio
-
-      if (dir.includes('w')) item.x = initialX + (initialW - newW);
-      if (dir.includes('n')) item.y = initialY + (initialH - newH);
-
-      item.width = newW;
-      item.height = newH;
-
-      div.style.left = `${item.x}px`;
-      div.style.top = `${item.y}px`;
-      div.style.width = `${item.width}px`;
-      div.style.height = `${item.height}px`;
-    }
-    function onUp() {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    }
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  }
-
-  function deleteSelectedScrapbookItem() {
-    if (!state.sbSelectedId) return;
-    state.sbItems = state.sbItems.filter(i => i.id !== state.sbSelectedId);
-    state.sbSelectedId = null;
-    renderScrapbookItems();
+    // Zoom via wheel
+    imgEl.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomSensitivity = 0.001;
+      const delta = -e.deltaY * zoomSensitivity;
+      const newScale = frame.image.scale * (1 + delta);
+      // Min scale is the 'cover' scale so it doesn't get smaller than the frame
+      const minScale = Math.max(frame.width / frame.image.img.naturalWidth, frame.height / frame.image.img.naturalHeight);
+      frame.image.scale = Math.max(minScale, Math.min(newScale, minScale * 5));
+      imgEl.style.transform = `translate(calc(-50% + ${frame.image.panX}px), calc(-50% + ${frame.image.panY}px)) scale(${frame.image.scale})`;
+    }, { passive: false });
   }
 
   function applyScrapbookToSlicer() {
-    if (state.sbItems.length === 0) {
+    const hasImages = state.sbFrames.some(f => f.image);
+    if (!hasImages) {
       showToast('Add some images first!');
       return;
     }
@@ -894,36 +970,51 @@
 
     // Fill background
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    ctx.fillStyle = isDark ? '#12121a' : '#ffffff'; // or let user choose later
+    ctx.fillStyle = isDark ? '#12121a' : '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw items (respecting z-index / array order)
-    state.sbItems.forEach(item => {
-      ctx.drawImage(item.img, item.x, item.y, item.width, item.height);
+    // Draw frames
+    state.sbFrames.forEach(frame => {
+      if (frame.image) {
+        ctx.save(); // Save context state
+        // Create clipping path for the frame
+        ctx.beginPath();
+        ctx.rect(frame.x, frame.y, frame.width, frame.height);
+        ctx.clip();
+        
+        // Calculate image draw properties based on pan and scale
+        const img = frame.image.img;
+        const drawW = img.naturalWidth * frame.image.scale;
+        const drawH = img.naturalHeight * frame.image.scale;
+        const drawX = frame.x + (frame.width / 2) - (drawW / 2) + frame.image.panX;
+        const drawY = frame.y + (frame.height / 2) - (drawH / 2) + frame.image.panY;
+        
+        ctx.drawImage(img, drawX, drawY, drawW, drawH);
+        
+        ctx.restore(); // Restore context to remove clip
+      }
     });
 
     const src = canvas.toDataURL('image/png');
-    const img = new Image();
-    img.onload = () => {
-      // Set to slicer
-      state.slicerImage = img;
+    const resultImg = new Image();
+    resultImg.onload = () => {
+      state.slicerImage = resultImg;
       state.slicerSrc = src;
       state.slicerSlideCount = conf.slides;
       
       closeScrapbook();
       openSlicer();
 
-      // Configure slicer to use this directly
-      els.slicerImgDimensions.textContent = `${img.naturalWidth} × ${img.naturalHeight} px`;
-      els.slicerImgRatio.textContent = `Ratio ${(img.naturalWidth / img.naturalHeight).toFixed(2)}:1`;
+      els.slicerImgDimensions.textContent = `${resultImg.naturalWidth} × ${resultImg.naturalHeight} px`;
+      els.slicerImgRatio.textContent = `Ratio ${(resultImg.naturalWidth / resultImg.naturalHeight).toFixed(2)}:1`;
       els.slicerSlideCount.value = conf.slides;
       els.slicerUpload.classList.add('hidden');
       els.slicerPreview.classList.remove('hidden');
       els.slicerApply.disabled = false;
-      generateSuggestions(img.naturalWidth, img.naturalHeight);
+      generateSuggestions(resultImg.naturalWidth, resultImg.naturalHeight);
       renderSlicerPreview();
     };
-    img.src = src;
+    resultImg.src = src;
   }
 
   /* ─── Export Mockup ─── */
@@ -1317,17 +1408,11 @@
     window.addEventListener('resize', () => {
       if (!els.sbOverlay.classList.contains('hidden')) updateScrapbookWorkspace();
     });
-    els.sbSlideCount.addEventListener('change', updateScrapbookWorkspace);
-    els.sbRatio.addEventListener('change', updateScrapbookWorkspace);
-    
-    // Deselect if clicking outside items on the workspace
-    els.sbWorkspace.addEventListener('mousedown', (e) => {
-      if (e.target === els.sbWorkspace || e.target === els.sbGrid) {
-        state.sbSelectedId = null;
-        renderScrapbookItems();
-      }
+    els.sbTemplateSelect.addEventListener('change', (e) => {
+      const template = SB_TEMPLATES.find(t => t.id === e.target.value);
+      if (template) loadTemplate(template);
     });
-
+    
     els.sbAddImgBtn.addEventListener('click', () => els.sbAddImgInput.click());
     els.sbAddImgInput.addEventListener('change', (e) => {
       Array.from(e.target.files).forEach(f => addScrapbookImage(f));
@@ -1335,26 +1420,19 @@
     });
 
     els.sbClear.addEventListener('click', () => {
-      if (confirm('Clear all images from the canvas?')) {
-        state.sbItems = [];
-        state.sbSelectedId = null;
+      if (confirm('Clear all images from the template?')) {
+        state.sbFrames.forEach(f => f.image = null);
         renderScrapbookItems();
       }
     });
 
     els.sbApply.addEventListener('click', applyScrapbookToSlicer);
 
-    // Keyboard: Escape to close slicer/scrapbook, Delete to remove item
+    // Keyboard: Escape to close slicer/scrapbook
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (!els.slicerOverlay.classList.contains('hidden')) closeSlicer();
         if (!els.sbOverlay.classList.contains('hidden')) closeScrapbook();
-      }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && !els.sbOverlay.classList.contains('hidden')) {
-        // Prevent if typing in an input
-        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-          deleteSelectedScrapbookItem();
-        }
       }
     });
 

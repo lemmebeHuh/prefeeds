@@ -408,34 +408,25 @@
 
       <div class="slicer-body scrapbook-body">
         <div class="scrapbook-controls">
-           <label class="slicer-label">Slides:</label>
-           <select id="sb-slide-count" class="input input-sm" style="width: 80px;">
-             <option value="2">2</option>
-             <option value="3" selected>3</option>
-             <option value="4">4</option>
-             <option value="5">5</option>
-             <option value="6">6</option>
-             <option value="7">7</option>
-             <option value="8">8</option>
-             <option value="9">9</option>
-             <option value="10">10</option>
-           </select>
-           <label class="slicer-label" style="margin-left: 12px;">Ratio:</label>
-           <select id="sb-ratio" class="input input-sm" style="width: 110px;">
-             <option value="1:1">1:1 Square</option>
-             <option value="4:5" selected>4:5 Portrait</option>
+           <label class="slicer-label">Template:</label>
+           <select id="sb-template-select" class="input input-sm" style="width: 200px;">
+             <!-- Populated via JS -->
            </select>
            
-           <button id="btn-sb-clear" class="btn-ghost btn-sm" style="margin-left: auto; color: #f56565; border-color: #f56565;">Clear All</button>
+           <button id="btn-sb-clear" class="btn-ghost btn-sm" style="margin-left: auto; color: #f56565; border-color: #f56565;">Clear Images</button>
         </div>
 
         <div class="scrapbook-canvas-container" id="scrapbook-container">
           <div class="scrapbook-workspace" id="scrapbook-workspace">
             <div class="scrapbook-grid" id="scrapbook-grid"></div>
-            <!-- Draggable items will be appended here -->
+            <!-- Template Frames will be rendered here -->
           </div>
         </div>
-        <p class="drop-subtext" style="text-align:center; margin-top:12px;">Tip: Drag to move. Use corner handles to resize. Selected items can be deleted with the 'Delete' key.</p>
+        <div class="sb-help-text" style="display:flex; justify-content:center; gap:24px; margin-top:12px;">
+          <span class="drop-subtext">🖱️ Drag inside frame to pan</span>
+          <span class="drop-subtext">🔍 Scroll to zoom</span>
+          <span class="drop-subtext">🔄 Drag image to another frame to swap</span>
+        </div>
       </div>
 
       <div class="slicer-footer">

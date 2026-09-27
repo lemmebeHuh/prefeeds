@@ -1465,7 +1465,7 @@ body {
   border-top: 1px solid var(--border-color);
 }
 
-/* ─── Scrapbook Builder ─── */
+/* ─── Scrapbook Builder (Templates) ─── */
 .scrapbook-modal {
   width: 95vw;
   max-width: 1400px;
@@ -1503,51 +1503,60 @@ body {
   position: relative;
   transform-origin: center center;
   box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-  /* The size will be set via JS */
+  /* Size set via JS */
 }
 .scrapbook-grid {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background-image: 
-    linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
-  background-size: 10% 100%; /* For slices. Will be updated dynamically */
+    linear-gradient(to right, rgba(0,0,0,0.15) 1px, transparent 1px);
+  background-size: 10% 100%; /* Dynamically set */
   z-index: 10;
 }
-.sb-item {
+
+.sb-frame {
   position: absolute;
-  cursor: move;
+  background: rgba(0,0,0,0.05);
+  border: 2px dashed rgba(0,0,0,0.2);
+  overflow: hidden; /* This masks the image inside */
   box-sizing: border-box;
-  transform-origin: center;
 }
-.sb-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  pointer-events: none; /* Let the wrapper handle events */
-  display: block;
+
+.sb-frame.has-image {
+  border: none;
+  background: transparent;
 }
-.sb-item.selected {
-  outline: 2px solid var(--accent-primary);
-}
-.sb-resize-handle {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: #fff;
+
+/* For Drag & Drop into a frame */
+.sb-frame.drag-over {
   border: 2px solid var(--accent-primary);
-  border-radius: 50%;
-  z-index: 20;
-  display: none;
+  background: rgba(193, 53, 132, 0.1);
 }
-.sb-item.selected .sb-resize-handle {
-  display: block;
+
+.sb-frame-img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  transform-origin: center;
+  cursor: grab;
+  /* width/height will be determined by script to fit cover */
 }
-.sb-resize-handle.nw { top: -6px; left: -6px; cursor: nwse-resize; }
-.sb-resize-handle.ne { top: -6px; right: -6px; cursor: nesw-resize; }
-.sb-resize-handle.sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
-.sb-resize-handle.se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
+.sb-frame-img:active {
+  cursor: grabbing;
+}
+
+.sb-frame-empty-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(0,0,0,0.3);
+  font-weight: 500;
+  pointer-events: none;
+}
 
 /* ─── Responsive ─── */
 @media (max-width: 960px) {
