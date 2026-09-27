@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skalla.works — Instagram Post Preview Tool</title>
+  <meta name="description" content="Preview your Instagram posts before publishing. Upload assets, pick feed ratios, review carousels, and export clean mockups.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <!-- Landing / Hero -->
+  <header id="hero" class="hero">
+    <div class="hero-bg-orbs">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-brand">
+        <svg class="nav-logo" viewBox="0 0 32 32" width="32" height="32">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#F56040"/>
+              <stop offset="50%" stop-color="#C13584"/>
+              <stop offset="100%" stop-color="#833AB4"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="2" width="28" height="28" rx="8" fill="none" stroke="url(#logoGrad)" stroke-width="2.5"/>
+          <circle cx="16" cy="16" r="7" fill="none" stroke="url(#logoGrad)" stroke-width="2.2"/>
+          <circle cx="23.5" cy="8.5" r="2" fill="url(#logoGrad)"/>
+        </svg>
+        <span class="nav-title">Skalla.works</span>
+      </div>
+      <div class="nav-actions">
+        <button id="btn-theme-toggle" class="btn-icon" title="Toggle theme" aria-label="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </nav>
+    <div class="hero-content">
+      <div class="hero-badge">✦ Instagram Preview Tool</div>
+      <h1 class="hero-title">Preview your <span class="gradient-text">Instagram</span> posts<br>before the world sees them.</h1>
+      <p class="hero-subtitle">Upload your assets, pick the feed ratio, review your carousel sequence, and export a pixel-perfect mockup — all in your browser.</p>
+      <button id="btn-get-started" class="btn-primary btn-lg">
+        <span>Start Previewing</span>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main App -->
+  <main id="app" class="app hidden">
+    <!-- Top bar -->
+    <div class="app-topbar">
+      <div class="topbar-left">
+        <button id="btn-back-hero" class="btn-icon" title="Back to home">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <svg class="topbar-logo" viewBox="0 0 32 32" width="28" height="28">
+          <rect x="2" y="2" width="28" height="28" rx="8" fill="none" stroke="url(#logoGrad)" stroke-width="2.5"/>
+          <circle cx="16" cy="16" r="7" fill="none" stroke="url(#logoGrad)" stroke-width="2.2"/>
+          <circle cx="23.5" cy="8.5" r="2" fill="url(#logoGrad)"/>
+        </svg>
+        <span class="topbar-title">Skalla.works</span>
+      </div>
+      <div class="topbar-right">
+        <button id="btn-theme-toggle-app" class="btn-icon" title="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button id="btn-export" class="btn-primary btn-sm" disabled>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Export Mockup</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="app-layout">
+      <!-- Sidebar Controls -->
+      <aside class="sidebar">
+        <!-- Profile Section -->
+        <section class="sidebar-section">
+          <h3 class="section-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile
+          </h3>
+          <div class="profile-row">
+            <div class="avatar-upload" id="avatar-upload" title="Upload avatar">
+              <img id="avatar-preview" src="" alt="Avatar" class="avatar-img hidden">
+              <div id="avatar-placeholder" class="avatar-placeholder">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <input type="file" id="avatar-input" accept="image/*" hidden>
+            </div>
+            <div class="profile-fields">
+              <input type="text" id="input-username" class="input" placeholder="username" value="skalla.works" maxlength="30">
+              <input type="text" id="input-location" class="input input-sm" placeholder="Location (optional)" value="Bandung" maxlength="60">
+            </div>
+          </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section class="sidebar-section">
+          <h3 class="section-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Upload Assets
+          </h3>
+          <div id="drop-zone" class="drop-zone">
+            <div class="drop-zone-content">
+              <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <p class="drop-text">Drag & drop images here</p>
+              <p class="drop-subtext">or click to browse · up to 10 slides</p>
+            </div>
+            <input type="file" id="file-input" accept="image/*" multiple hidden>
+          </div>
+          <button id="btn-strip-slicer" class="btn-strip-slicer">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="2"/><line x1="8.5" y1="5" x2="8.5" y2="19"/><line x1="15.5" y1="5" x2="15.5" y2="19"/></svg>
+            <div class="strip-slicer-text">
+              <span class="strip-slicer-label">Strip Slicer</span>
+              <span class="strip-slicer-desc">Split a Canva panoramic export into slides</span>
+            </div>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </section>
+
+        <!-- Carousel Thumbnails -->
+        <section id="carousel-section" class="sidebar-section hidden">
+          <h3 class="section-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="15" height="15" rx="2"/><path d="M17 2h3a2 2 0 0 1 2 2v3"/><path d="M22 17v3a2 2 0 0 1-2 2h-3"/></svg>
+            Carousel Slides
+            <span id="slide-count" class="badge">0</span>
+          </h3>
+          <div id="carousel-thumbs" class="carousel-thumbs"></div>
+          <button id="btn-add-more" class="btn-ghost btn-sm btn-full">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add More Slides
+          </button>
+        </section>
+
+        <!-- Aspect Ratio -->
+        <section class="sidebar-section">
+          <h3 class="section-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+            Aspect Ratio
+          </h3>
+          <div class="ratio-grid">
+            <button class="ratio-btn active" data-ratio="1:1">
+              <div class="ratio-icon ratio-square"></div>
+              <span>1:1</span>
+              <small>Square</small>
+            </button>
+            <button class="ratio-btn" data-ratio="4:5">
+              <div class="ratio-icon ratio-portrait"></div>
+              <span>4:5</span>
+              <small>Portrait</small>
+            </button>
+            <button class="ratio-btn" data-ratio="1.91:1">
+              <div class="ratio-icon ratio-landscape"></div>
+              <span>1.91:1</span>
+              <small>Landscape</small>
+            </button>
+          </div>
+        </section>
+
+        <!-- Caption -->
+        <section class="sidebar-section">
+          <h3 class="section-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+            Caption
+          </h3>
+          <textarea id="input-caption" class="textarea" placeholder="Write your caption here..." rows="4" maxlength="2200"></textarea>
+          <div class="caption-footer">
+            <span id="char-count" class="char-count">0 / 2,200</span>
+          </div>
+        </section>
+
+        <!-- Engagement -->
+        <section class="sidebar-section">
+          <h3 class="section-title">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Engagement
+          </h3>
+          <div class="engagement-row">
+            <label class="input-label" for="input-likes">Likes</label>
+            <input type="text" id="input-likes" class="input input-sm" placeholder="0" value="0">
+          </div>
+          <div class="engagement-row">
+            <label class="input-label" for="input-comments">Comments</label>
+            <input type="text" id="input-comments" class="input input-sm" placeholder="0" value="0">
+          </div>
+          <div class="engagement-row">
+            <label class="input-label" for="input-time">Time</label>
+            <input type="text" id="input-time" class="input input-sm" placeholder="2 hours ago" value="Just now">
+          </div>
+        </section>
+      </aside>
+
+      <!-- Preview Panel -->
+      <div class="preview-panel">
+        <div class="preview-wrapper">
+          <!-- Device Frame -->
+          <div class="device-frame">
+            <div class="phone-notch"></div>
+            <!-- Instagram Post Card -->
+            <div id="instagram-post" class="ig-post">
+              <!-- Header -->
+              <div class="ig-header">
+                <div class="ig-header-left">
+                  <div class="ig-avatar" id="ig-avatar">
+                    <img id="ig-avatar-img" src="" alt="" class="hidden">
+                    <div id="ig-avatar-fallback" class="ig-avatar-fallback"></div>
+                  </div>
+                  <div class="ig-user-info">
+                    <span class="ig-username" id="ig-username">yourhandle</span>
+                    <span class="ig-location" id="ig-location"></span>
+                  </div>
+                </div>
+                <div class="ig-header-right">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                </div>
+              </div>
+
+              <!-- Image Area -->
+              <div class="ig-image-area" id="ig-image-area">
+                <div class="ig-image-container" id="ig-image-container">
+                  <div id="ig-empty-state" class="ig-empty-state">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span>Upload an image to preview</span>
+                  </div>
+                  <!-- The sliding track for images -->
+                  <div id="ig-carousel-track" class="ig-carousel-track"></div>
+                </div>
+                <!-- Carousel Navigation -->
+                <button id="ig-prev" class="ig-carousel-btn ig-carousel-prev hidden" aria-label="Previous slide">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <button id="ig-next" class="ig-carousel-btn ig-carousel-next hidden" aria-label="Next slide">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <!-- Dots -->
+                <div id="ig-dots" class="ig-dots hidden"></div>
+                <!-- Slide Counter -->
+                <div id="ig-counter" class="ig-counter hidden">
+                  <span id="ig-counter-text">1/1</span>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="ig-actions">
+                <div class="ig-actions-left">
+                  <button class="ig-action-btn" id="ig-like-btn" aria-label="Like">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  </button>
+                  <button class="ig-action-btn" aria-label="Comment">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                  </button>
+                  <button class="ig-action-btn" aria-label="Share">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </button>
+                </div>
+                <div class="ig-actions-right">
+                  <button class="ig-action-btn" aria-label="Save">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Likes -->
+              <div class="ig-likes" id="ig-likes">
+                <span id="ig-likes-text"></span>
+              </div>
+
+              <!-- Caption -->
+              <div class="ig-caption" id="ig-caption">
+                <span class="ig-caption-user" id="ig-caption-user">yourhandle</span>
+                <span class="ig-caption-text" id="ig-caption-text"></span>
+              </div>
+
+              <!-- Comments -->
+              <div class="ig-comments" id="ig-comments-section">
+                <span id="ig-comments-text" class="ig-comments-link"></span>
+              </div>
+
+              <!-- Time -->
+              <div class="ig-time" id="ig-time">Just now</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Strip Slicer Modal -->
+  <div id="slicer-overlay" class="slicer-overlay hidden">
+    <div class="slicer-modal">
+      <div class="slicer-header">
+        <div class="slicer-header-left">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V3h16v18"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="14" y1="3" x2="14" y2="21"/></svg>
+          <div>
+            <h2 class="slicer-title">Strip Slicer</h2>
+            <p class="slicer-subtitle">Split a panoramic image into carousel slides</p>
+          </div>
+        </div>
+        <button id="slicer-close" class="btn-icon" title="Close">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Slicer Body -->
+      <div class="slicer-body">
+        <!-- Upload Strip Area (shown when no strip loaded) -->
+        <div id="slicer-upload" class="slicer-upload-area">
+          <div class="slicer-upload-content">
+            <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="5" width="22" height="14" rx="2"/><line x1="8" y1="5" x2="8" y2="19"/><line x1="16" y1="5" x2="16" y2="19"/></svg>
+            <p class="drop-text">Upload your panoramic strip</p>
+            <p class="drop-subtext">Wide images from Canva or design tools (e.g. 12960×2700 px)</p>
+          </div>
+          <input type="file" id="slicer-file-input" accept="image/*" hidden>
+        </div>
+
+        <!-- Strip Preview (shown after upload) -->
+        <div id="slicer-preview" class="slicer-preview hidden">
+          <!-- Image info bar -->
+          <div class="slicer-info-bar">
+            <span id="slicer-img-dimensions" class="slicer-info-tag">12960 × 2700 px</span>
+            <span id="slicer-img-ratio" class="slicer-info-tag">Ratio 4.8:1</span>
+            <button id="slicer-change-img" class="btn-ghost btn-xs">Change Image</button>
+          </div>
+
+          <!-- Canvas preview with grid lines -->
+          <div class="slicer-canvas-wrap">
+            <canvas id="slicer-canvas"></canvas>
+            <!-- Slice labels rendered on top -->
+            <div id="slicer-labels" class="slicer-labels"></div>
+          </div>
+
+          <!-- Controls -->
+          <div class="slicer-controls">
+            <div class="slicer-control-row">
+              <label class="slicer-label" for="slicer-slide-count">Number of Slides</label>
+              <div class="slicer-stepper">
+                <button id="slicer-minus" class="slicer-stepper-btn" aria-label="Decrease">−</button>
+                <input type="number" id="slicer-slide-count" class="slicer-stepper-input" min="2" max="10" value="2">
+                <button id="slicer-plus" class="slicer-stepper-btn" aria-label="Increase">+</button>
+              </div>
+            </div>
+            <div class="slicer-control-row">
+              <label class="slicer-label">Per-slide size</label>
+              <span id="slicer-per-slide" class="slicer-value">6480 × 2700 px</span>
+            </div>
+            <div class="slicer-control-row">
+              <label class="slicer-label">Per-slide ratio</label>
+              <span id="slicer-per-ratio" class="slicer-value">~2.4:1</span>
+            </div>
+
+            <!-- Auto-detect suggestions -->
+            <div id="slicer-suggestions" class="slicer-suggestions"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slicer Footer -->
+      <div class="slicer-footer">
+        <button id="slicer-cancel" class="btn-ghost">Cancel</button>
+        <button id="slicer-apply" class="btn-primary btn-sm" disabled>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 20 20 4"/></svg>
+          <span>Split & Add to Carousel</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Canvas (hidden) -->
+  <canvas id="export-canvas" style="display:none;"></canvas>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden">
+    <span id="toast-message"></span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
