@@ -17,6 +17,11 @@
     slicerImage: null,     // HTMLImageElement
     slicerSrc: null,       // data URL
     slicerSlideCount: 2,
+
+    // Scrapbook Builder
+    sbItems: [],           // Array of { id, img, x, y, width, height, aspect }
+    sbSelectedId: null,
+    sbBaseHeight: 1080,    // Standard IG height
   };
 
   /* ─── DOM References ─── */
@@ -103,6 +108,21 @@
     slicerSuggestions: $('#slicer-suggestions'),
     slicerCancel: $('#slicer-cancel'),
     slicerApply: $('#slicer-apply'),
+
+    // Scrapbook Builder
+    btnScrapbook: $('#btn-scrapbook'),
+    sbOverlay: $('#scrapbook-overlay'),
+    sbClose: $('#scrapbook-close'),
+    sbCancel: $('#scrapbook-cancel'),
+    sbApply: $('#scrapbook-apply'),
+    sbAddImgBtn: $('#btn-sb-add-img'),
+    sbAddImgInput: $('#scrapbook-add-img'),
+    sbClear: $('#btn-sb-clear'),
+    sbSlideCount: $('#sb-slide-count'),
+    sbRatio: $('#sb-ratio'),
+    sbContainer: $('#scrapbook-container'),
+    sbWorkspace: $('#scrapbook-workspace'),
+    sbGrid: $('#scrapbook-grid'),
 
     // Toast
     toast: $('#toast'),
@@ -664,6 +684,248 @@
     showToast(`Split into ${count} slides and added to carousel!`);
   }
 
+  /* ═══════════════════════════════════════════════════
+   * ─── Scrapbook Builder ───
+   * ═══════════════════════════════════════════════════ */
+
+  function openScrapbook() {
+    els.sbOverlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    updateScrapbookWorkspace();
+  }
+
+  function closeScrapbook() {
+    els.sbOverlay.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function getScrapbookConfig() {
+    const slides = parseInt(els.sbSlideCount.value);
+    const ratioStr = els.sbRatio.value;
+    // Base height is fixed to 1080 for rendering. Width depends on ratio.
+    const h = state.sbBaseHeight;
+    const wPerSlide = ratioStr === '1:1' ? h : Math.round(h * (4/5));
+    const totalW = wPerSlide * slides;
+    return { slides, wPerSlide, totalW, h };
+  }
+
+  function updateScrapbookWorkspace() {
+    const conf = getScrapbookConfig();
+    // Set actual width and height style on workspace for JS dragging
+    els.sbWorkspace.style.width = `${conf.totalW}px`;
+    els.sbWorkspace.style.height = `${conf.h}px`;
+    
+    // Scale workspace to fit container visually
+    const containerW = els.sbContainer.clientWidth - 64; // padding
+    const containerH = els.sbContainer.clientHeight - 64;
+    const scale = Math.min(containerW / conf.totalW, containerH / conf.h, 1);
+    els.sbWorkspace.style.transform = `scale(${scale})`;
+    
+    // Update grid background
+    const perc = (100 / conf.slides).toFixed(4);
+    els.sbGrid.style.backgroundSize = `${perc}% 100%`;
+  }
+
+  async function addScrapbookImage(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    const src = await readFileAsDataURL(file);
+    const img = new Image();
+    await new Promise((resolve) => {
+      img.onload = resolve;
+      img.src = src;
+    });
+
+    const conf = getScrapbookConfig();
+    // Default size is 50% of the height
+    const displayH = conf.h * 0.5;
+    const displayW = displayH * (img.naturalWidth / img.naturalHeight);
+
+    const id = 'sb-item-' + Date.now();
+    state.sbItems.push({
+      id,
+      img,
+      x: (conf.totalW / 2) - (displayW / 2),
+      y: (conf.h / 2) - (displayH / 2),
+      width: displayW,
+      height: displayH,
+      aspect: img.naturalWidth / img.naturalHeight
+    });
+    
+    renderScrapbookItems();
+  }
+
+  function renderScrapbookItems() {
+    // Keep grid, remove old items
+    const children = Array.from(els.sbWorkspace.children);
+    children.forEach(c => {
+      if (c.id !== 'scrapbook-grid') els.sbWorkspace.removeChild(c);
+    });
+
+    state.sbItems.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'sb-item' + (state.sbSelectedId === item.id ? ' selected' : '');
+      div.id = item.id;
+      div.style.left = `${item.x}px`;
+      div.style.top = `${item.y}px`;
+      div.style.width = `${item.width}px`;
+      div.style.height = `${item.height}px`;
+
+      const imgEl = document.createElement('img');
+      imgEl.src = item.img.src;
+      div.appendChild(imgEl);
+
+      // Handles
+      ['nw', 'ne', 'sw', 'se'].forEach(dir => {
+        const handle = document.createElement('div');
+        handle.className = `sb-resize-handle ${dir}`;
+        handle.dataset.dir = dir;
+        div.appendChild(handle);
+      });
+
+      // Selection & Drag
+      div.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('sb-resize-handle')) return; // handled separately
+        state.sbSelectedId = item.id;
+        renderScrapbookItems(); // update selection outline
+        startScrapbookDrag(e, item, div);
+      });
+
+      // Resize
+      div.querySelectorAll('.sb-resize-handle').forEach(handle => {
+        handle.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          startScrapbookResize(e, item, div, handle.dataset.dir);
+        });
+      });
+
+      els.sbWorkspace.appendChild(div);
+    });
+  }
+
+  function getWorkspaceScale() {
+    const transform = els.sbWorkspace.style.transform;
+    const match = transform.match(/scale\(([^)]+)\)/);
+    return match ? parseFloat(match[1]) : 1;
+  }
+
+  function startScrapbookDrag(e, item, div) {
+    e.preventDefault();
+    const scale = getWorkspaceScale();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialX = item.x;
+    const initialY = item.y;
+
+    function onMove(ev) {
+      item.x = initialX + (ev.clientX - startX) / scale;
+      item.y = initialY + (ev.clientY - startY) / scale;
+      div.style.left = `${item.x}px`;
+      div.style.top = `${item.y}px`;
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  function startScrapbookResize(e, item, div, dir) {
+    e.preventDefault();
+    const scale = getWorkspaceScale();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initialX = item.x;
+    const initialY = item.y;
+    const initialW = item.width;
+    const initialH = item.height;
+    const aspect = item.aspect;
+
+    function onMove(ev) {
+      const dx = (ev.clientX - startX) / scale;
+      const dy = (ev.clientY - startY) / scale;
+      
+      let newW = initialW;
+      
+      if (dir.includes('e')) newW = initialW + dx;
+      if (dir.includes('w')) newW = initialW - dx;
+      
+      // Enforce min width
+      newW = Math.max(50, newW);
+      const newH = newW / aspect; // lock aspect ratio
+
+      if (dir.includes('w')) item.x = initialX + (initialW - newW);
+      if (dir.includes('n')) item.y = initialY + (initialH - newH);
+
+      item.width = newW;
+      item.height = newH;
+
+      div.style.left = `${item.x}px`;
+      div.style.top = `${item.y}px`;
+      div.style.width = `${item.width}px`;
+      div.style.height = `${item.height}px`;
+    }
+    function onUp() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+
+  function deleteSelectedScrapbookItem() {
+    if (!state.sbSelectedId) return;
+    state.sbItems = state.sbItems.filter(i => i.id !== state.sbSelectedId);
+    state.sbSelectedId = null;
+    renderScrapbookItems();
+  }
+
+  function applyScrapbookToSlicer() {
+    if (state.sbItems.length === 0) {
+      showToast('Add some images first!');
+      return;
+    }
+
+    const conf = getScrapbookConfig();
+    const canvas = document.createElement('canvas');
+    canvas.width = conf.totalW;
+    canvas.height = conf.h;
+    const ctx = canvas.getContext('2d');
+
+    // Fill background
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    ctx.fillStyle = isDark ? '#12121a' : '#ffffff'; // or let user choose later
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw items (respecting z-index / array order)
+    state.sbItems.forEach(item => {
+      ctx.drawImage(item.img, item.x, item.y, item.width, item.height);
+    });
+
+    const src = canvas.toDataURL('image/png');
+    const img = new Image();
+    img.onload = () => {
+      // Set to slicer
+      state.slicerImage = img;
+      state.slicerSrc = src;
+      state.slicerSlideCount = conf.slides;
+      
+      closeScrapbook();
+      openSlicer();
+
+      // Configure slicer to use this directly
+      els.slicerImgDimensions.textContent = `${img.naturalWidth} × ${img.naturalHeight} px`;
+      els.slicerImgRatio.textContent = `Ratio ${(img.naturalWidth / img.naturalHeight).toFixed(2)}:1`;
+      els.slicerSlideCount.value = conf.slides;
+      els.slicerUpload.classList.add('hidden');
+      els.slicerPreview.classList.remove('hidden');
+      els.slicerApply.disabled = false;
+      generateSuggestions(img.naturalWidth, img.naturalHeight);
+      renderSlicerPreview();
+    };
+    img.src = src;
+  }
+
   /* ─── Export Mockup ─── */
   async function exportMockup() {
     if (state.slides.length === 0) return;
@@ -1045,10 +1307,54 @@
     // Apply
     els.slicerApply.addEventListener('click', applySlice);
 
-    // Keyboard: Escape to close slicer
+    // ─── Scrapbook Builder Events ───
+    els.btnScrapbook.addEventListener('click', openScrapbook);
+    els.sbClose.addEventListener('click', closeScrapbook);
+    els.sbCancel.addEventListener('click', closeScrapbook);
+    els.sbOverlay.addEventListener('click', (e) => {
+      if (e.target === els.sbOverlay) closeScrapbook();
+    });
+    window.addEventListener('resize', () => {
+      if (!els.sbOverlay.classList.contains('hidden')) updateScrapbookWorkspace();
+    });
+    els.sbSlideCount.addEventListener('change', updateScrapbookWorkspace);
+    els.sbRatio.addEventListener('change', updateScrapbookWorkspace);
+    
+    // Deselect if clicking outside items on the workspace
+    els.sbWorkspace.addEventListener('mousedown', (e) => {
+      if (e.target === els.sbWorkspace || e.target === els.sbGrid) {
+        state.sbSelectedId = null;
+        renderScrapbookItems();
+      }
+    });
+
+    els.sbAddImgBtn.addEventListener('click', () => els.sbAddImgInput.click());
+    els.sbAddImgInput.addEventListener('change', (e) => {
+      Array.from(e.target.files).forEach(f => addScrapbookImage(f));
+      e.target.value = '';
+    });
+
+    els.sbClear.addEventListener('click', () => {
+      if (confirm('Clear all images from the canvas?')) {
+        state.sbItems = [];
+        state.sbSelectedId = null;
+        renderScrapbookItems();
+      }
+    });
+
+    els.sbApply.addEventListener('click', applyScrapbookToSlicer);
+
+    // Keyboard: Escape to close slicer/scrapbook, Delete to remove item
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !els.slicerOverlay.classList.contains('hidden')) {
-        closeSlicer();
+      if (e.key === 'Escape') {
+        if (!els.slicerOverlay.classList.contains('hidden')) closeSlicer();
+        if (!els.sbOverlay.classList.contains('hidden')) closeScrapbook();
+      }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !els.sbOverlay.classList.contains('hidden')) {
+        // Prevent if typing in an input
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+          deleteSelectedScrapbookItem();
+        }
       }
     });
 

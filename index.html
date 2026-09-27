@@ -121,7 +121,16 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="2"/><line x1="8.5" y1="5" x2="8.5" y2="19"/><line x1="15.5" y1="5" x2="15.5" y2="19"/></svg>
             <div class="strip-slicer-text">
               <span class="strip-slicer-label">Strip Slicer</span>
-              <span class="strip-slicer-desc">Split a Canva panoramic export into slides</span>
+              <span class="strip-slicer-desc">Split a panoramic export into slides</span>
+            </div>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          
+          <button id="btn-scrapbook" class="btn-strip-slicer">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 6.5l-4-4-13 13v4h4l13-13z"/><path d="M14.5 9.5l4 4"/></svg>
+            <div class="strip-slicer-text">
+              <span class="strip-slicer-label">Scrapbook Builder</span>
+              <span class="strip-slicer-desc">Design a seamless carousel from scratch</span>
             </div>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -369,6 +378,71 @@
         <button id="slicer-apply" class="btn-primary btn-sm" disabled>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 20 20 4"/></svg>
           <span>Split & Add to Carousel</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scrapbook Builder Modal -->
+  <div id="scrapbook-overlay" class="slicer-overlay hidden">
+    <div class="slicer-modal scrapbook-modal">
+      <div class="slicer-header">
+        <div class="slicer-header-left">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 6.5l-4-4-13 13v4h4l13-13z"/><path d="M14.5 9.5l4 4"/></svg>
+          <div>
+            <h2 class="slicer-title">Scrapbook Builder</h2>
+            <p class="slicer-subtitle">Build a seamless panoramic collage</p>
+          </div>
+        </div>
+        <div class="slicer-header-right" style="display:flex; gap:10px;">
+          <input type="file" id="scrapbook-add-img" accept="image/*" multiple hidden>
+          <button id="btn-sb-add-img" class="btn-ghost btn-sm">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Image
+          </button>
+          <button id="scrapbook-close" class="btn-icon" title="Close">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="slicer-body scrapbook-body">
+        <div class="scrapbook-controls">
+           <label class="slicer-label">Slides:</label>
+           <select id="sb-slide-count" class="input input-sm" style="width: 80px;">
+             <option value="2">2</option>
+             <option value="3" selected>3</option>
+             <option value="4">4</option>
+             <option value="5">5</option>
+             <option value="6">6</option>
+             <option value="7">7</option>
+             <option value="8">8</option>
+             <option value="9">9</option>
+             <option value="10">10</option>
+           </select>
+           <label class="slicer-label" style="margin-left: 12px;">Ratio:</label>
+           <select id="sb-ratio" class="input input-sm" style="width: 110px;">
+             <option value="1:1">1:1 Square</option>
+             <option value="4:5" selected>4:5 Portrait</option>
+           </select>
+           
+           <button id="btn-sb-clear" class="btn-ghost btn-sm" style="margin-left: auto; color: #f56565; border-color: #f56565;">Clear All</button>
+        </div>
+
+        <div class="scrapbook-canvas-container" id="scrapbook-container">
+          <div class="scrapbook-workspace" id="scrapbook-workspace">
+            <div class="scrapbook-grid" id="scrapbook-grid"></div>
+            <!-- Draggable items will be appended here -->
+          </div>
+        </div>
+        <p class="drop-subtext" style="text-align:center; margin-top:12px;">Tip: Drag to move. Use corner handles to resize. Selected items can be deleted with the 'Delete' key.</p>
+      </div>
+
+      <div class="slicer-footer">
+        <button id="scrapbook-cancel" class="btn-ghost">Cancel</button>
+        <button id="scrapbook-apply" class="btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 20 20 4"/></svg>
+          <span>Send to Slicer</span>
         </button>
       </div>
     </div>

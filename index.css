@@ -1465,6 +1465,90 @@ body {
   border-top: 1px solid var(--border-color);
 }
 
+/* ─── Scrapbook Builder ─── */
+.scrapbook-modal {
+  width: 95vw;
+  max-width: 1400px;
+  max-height: 95vh;
+}
+.scrapbook-body {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+.scrapbook-controls {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 8px;
+  background: var(--bg-primary);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+.scrapbook-canvas-container {
+  flex: 1;
+  background: #0a0a0a;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+.scrapbook-workspace {
+  background: #ffffff;
+  position: relative;
+  transform-origin: center center;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  /* The size will be set via JS */
+}
+.scrapbook-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 10% 100%; /* For slices. Will be updated dynamically */
+  z-index: 10;
+}
+.sb-item {
+  position: absolute;
+  cursor: move;
+  box-sizing: border-box;
+  transform-origin: center;
+}
+.sb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none; /* Let the wrapper handle events */
+  display: block;
+}
+.sb-item.selected {
+  outline: 2px solid var(--accent-primary);
+}
+.sb-resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border: 2px solid var(--accent-primary);
+  border-radius: 50%;
+  z-index: 20;
+  display: none;
+}
+.sb-item.selected .sb-resize-handle {
+  display: block;
+}
+.sb-resize-handle.nw { top: -6px; left: -6px; cursor: nwse-resize; }
+.sb-resize-handle.ne { top: -6px; right: -6px; cursor: nesw-resize; }
+.sb-resize-handle.sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+.sb-resize-handle.se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+
 /* ─── Responsive ─── */
 @media (max-width: 960px) {
   .app-layout {
