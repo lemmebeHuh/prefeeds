@@ -1114,24 +1114,88 @@
       }
     });
 
-    // Touch swipe on image area
-    let touchStartX = 0;
+    // Unified Pointer/Touch drag-to-swipe
+    let isDragging = false;
+    let dragStartX = 0;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
     const imageArea = document.getElementById('ig-image-area');
-    imageArea.addEventListener('touchstart', (e) => {
-      touchStartX = e.touches[0].clientX;
-    }, { passive: true });
-    imageArea.addEventListener('touchend', (e) => {
-      const diff = touchStartX - e.changedTouches[0].clientX;
-      if (Math.abs(diff) > 50) {
-        if (diff > 0 && state.currentSlide < state.slides.length - 1) {
-          state.currentSlide++;
-        } else if (diff < 0 && state.currentSlide > 0) {
-          state.currentSlide--;
-        }
-        updatePreview();
-        updateCarouselThumbs();
+
+    function getPositionX(e) {
+      return e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+    }
+
+    function dragStart(e) {
+      if (state.slides.length <= 1) return;
+      isDragging = true;
+      dragStartX = getPositionX(e);
+      els.igCarouselTrack.style.transition = 'none'; // Remove CSS transition during drag
+      prevTranslate = -state.currentSlide * 100;
+    }
+
+    function dragMove(e) {
+      if (!isDragging) return;
+      
+      const currentPosition = getPositionX(e);
+      const diff = currentPosition - dragStartX;
+      
+      // Calculate diff in percentage
+      const trackWidth = els.igCarouselTrack.clientWidth;
+      const diffPercent = (diff / trackWidth) * 100;
+      
+      currentTranslate = prevTranslate + diffPercent;
+      
+      // Add rubber-band resistance at the edges
+      if (currentTranslate > 0) {
+        currentTranslate = currentTranslate / 3;
+      } else if (currentTranslate < -(state.slides.length - 1) * 100) {
+        const edge = -(state.slides.length - 1) * 100;
+        const over = currentTranslate - edge;
+        currentTranslate = edge + over / 3;
       }
-    }, { passive: true });
+
+      els.igCarouselTrack.style.transform = `translateX(${currentTranslate}%)`;
+    }
+
+    function dragEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      
+      // Restore CSS transition
+      els.igCarouselTrack.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+      
+      const movedBy = currentTranslate - prevTranslate;
+      
+      // Threshold to trigger slide change (15% of width)
+      if (movedBy < -15 && state.currentSlide < state.slides.length - 1) {
+        state.currentSlide++;
+      } else if (movedBy > 15 && state.currentSlide > 0) {
+        state.currentSlide--;
+      }
+      
+      // The updatePreview will translate it back to the exact snapped position
+      updatePreview();
+      updateCarouselThumbs();
+    }
+
+    // Touch events
+    imageArea.addEventListener('touchstart', dragStart, { passive: true });
+    imageArea.addEventListener('touchmove', (e) => {
+      if (isDragging) e.preventDefault(); // Prevent scroll while swiping
+      dragMove(e);
+    }, { passive: false });
+    imageArea.addEventListener('touchend', dragEnd);
+    
+    // Mouse events
+    imageArea.addEventListener('mousedown', (e) => {
+      e.preventDefault(); // Prevent native image drag ghosting
+      dragStart(e);
+    });
+    imageArea.addEventListener('mousemove', dragMove);
+    imageArea.addEventListener('mouseup', dragEnd);
+    imageArea.addEventListener('mouseleave', () => {
+      if (isDragging) dragEnd();
+    });
 
     // Paste from clipboard
     document.addEventListener('paste', async (e) => {
