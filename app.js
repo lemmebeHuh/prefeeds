@@ -26,12 +26,82 @@
 
   const SB_TEMPLATES = [
     {
+      id: 'ref_pink',
+      name: 'Pink Graduation (6 Slides)',
+      slides: 6,
+      ratio: '4:5',
+      frames: [
+        { id: 'f1', x: 0, y: 0, width: 864, height: 1080 }, 
+        { id: 'f2', x: 900, y: 40, width: 792, height: 480 },
+        { id: 'f3', x: 900, y: 560, width: 792, height: 480 },
+        { id: 'f4', x: 1728, y: 0, width: 864, height: 1080 },
+        { id: 'f5', x: 2620, y: 40, width: 808, height: 320 },
+        { id: 'f6', x: 2620, y: 380, width: 808, height: 320 },
+        { id: 'f7', x: 2620, y: 720, width: 808, height: 320 },
+        { id: 'f8', x: 3500, y: 100, width: 600, height: 600 },
+        { id: 'f9', x: 4400, y: 400, width: 600, height: 600 }
+      ]
+    },
+    {
+      id: 'ref_maroon',
+      name: 'Maroon Graduation (7 Slides)',
+      slides: 7,
+      ratio: '4:5',
+      frames: [
+        { id: 'f1', x: 0, y: 0, width: 864, height: 1080 },
+        { id: 'f2', x: 864, y: 0, width: 864, height: 1080 },
+        { id: 'f3', x: 1728, y: 400, width: 600, height: 680 },
+        { id: 'f4', x: 2592, y: 0, width: 864, height: 1080 },
+        { id: 'f5', x: 3500, y: 100, width: 700, height: 400 },
+        { id: 'f6', x: 3500, y: 550, width: 700, height: 400 },
+        { id: 'f7', x: 4420, y: 150, width: 664, height: 780 },
+        { id: 'f8', x: 5184, y: 0, width: 864, height: 1080 }
+      ]
+    },
+    {
+      id: 'ref_purple',
+      name: 'Purple Graduation (6 Slides)',
+      slides: 6,
+      ratio: '4:5',
+      frames: [
+        { id: 'f1', x: 0, y: 0, width: 864, height: 1080 },
+        { id: 'f2', x: 900, y: 40, width: 390, height: 480 },
+        { id: 'f3', x: 1310, y: 40, width: 390, height: 480 },
+        { id: 'f4', x: 900, y: 540, width: 800, height: 500 },
+        { id: 'f5', x: 1728, y: 0, width: 864, height: 1080 },
+        { id: 'f6', x: 2620, y: 40, width: 390, height: 1000 },
+        { id: 'f7', x: 3030, y: 40, width: 390, height: 1000 },
+        { id: 'f8', x: 3456, y: 0, width: 864, height: 1080 },
+        { id: 'f9', x: 4360, y: 40, width: 784, height: 480 },
+        { id: 'f10', x: 4360, y: 560, width: 784, height: 480 }
+      ]
+    },
+    {
+      id: 'ref_green',
+      name: 'Green Graduation (7 Slides)',
+      slides: 7,
+      ratio: '4:5',
+      frames: [
+        { id: 'f1', x: 0, y: 0, width: 864, height: 1080 },
+        { id: 'f2', x: 964, y: 100, width: 664, height: 880 },
+        { id: 'f3', x: 1764, y: 40, width: 380, height: 480 },
+        { id: 'f4', x: 2164, y: 40, width: 380, height: 480 },
+        { id: 'f5', x: 1764, y: 560, width: 780, height: 480 },
+        { id: 'f6', x: 2592, y: 0, width: 864, height: 1080 },
+        { id: 'f7', x: 3500, y: 100, width: 360, height: 880 },
+        { id: 'f8', x: 3900, y: 100, width: 360, height: 880 },
+        { id: 'f9', x: 4420, y: 100, width: 664, height: 880 },
+        { id: 'f10', x: 5220, y: 40, width: 784, height: 480 },
+        { id: 'f11', x: 5220, y: 560, width: 784, height: 480 }
+      ]
+    },
+    {
       id: 'filmstrip',
-      name: 'Filmstrip (3 Slides)',
+      name: 'Basic Filmstrip (3 Slides)',
       slides: 3,
       ratio: '4:5',
       frames: [
-        { id: 'f1', x: 50, y: 100, width: 764, height: 880 }, // slide 1: 864x1080
+        { id: 'f1', x: 50, y: 100, width: 764, height: 880 },
         { id: 'f2', x: 914, y: 100, width: 764, height: 880 },
         { id: 'f3', x: 1778, y: 100, width: 764, height: 880 }
       ]
@@ -45,18 +115,6 @@
         { id: 'f1', x: 100, y: 100, width: 1000, height: 800 }, 
         { id: 'f2', x: 1200, y: 150, width: 600, height: 800 },
         { id: 'f3', x: 1900, y: 50, width: 600, height: 980 }
-      ]
-    },
-    {
-      id: 'polaroid',
-      name: 'Polaroid Scatter (4 Slides)',
-      slides: 4,
-      ratio: '1:1', // Square slides
-      frames: [
-        { id: 'f1', x: 80, y: 120, width: 700, height: 840 },
-        { id: 'f2', x: 950, y: 200, width: 700, height: 700 },
-        { id: 'f3', x: 1800, y: 100, width: 700, height: 840 },
-        { id: 'f4', x: 2650, y: 150, width: 700, height: 700 }
       ]
     }
   ];
@@ -776,15 +834,18 @@
     els.sbWorkspace.style.width = `${conf.totalW}px`;
     els.sbWorkspace.style.height = `${conf.h}px`;
     
-    // Scale workspace to fit container visually
-    const containerW = els.sbContainer.clientWidth - 64; 
-    const containerH = els.sbContainer.clientHeight - 64;
-    const scale = Math.min(containerW / conf.totalW, containerH / conf.h, 1);
-    els.sbWorkspace.style.transform = `scale(${scale})`;
-    
-    // Update grid background
     const perc = (100 / conf.slides).toFixed(4);
     els.sbGrid.style.backgroundSize = `${perc}% 100%`;
+
+    // Scale workspace to fit container visually (wait for DOM paint)
+    requestAnimationFrame(() => {
+      const containerW = els.sbContainer.clientWidth - 64; 
+      const containerH = els.sbContainer.clientHeight - 64;
+      if (containerW > 0 && containerH > 0) {
+        const scale = Math.min(containerW / conf.totalW, containerH / conf.h, 1);
+        els.sbWorkspace.style.transform = `scale(${scale})`;
+      }
+    });
   }
 
   async function addScrapbookImage(file) {
